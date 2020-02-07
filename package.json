@@ -13,6 +13,7 @@
     "eslint-plugin-flowtype": "^3.13.0",
     "graphql": "^14.6.0",
     "graphql-tag": "^2.10.3",
+    "http-server": "^0.12.1",
     "pusher": "^3.0.0",
     "pusher-js": "^5.0.3",
     "react": "^16.12.0",

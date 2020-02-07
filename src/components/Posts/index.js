@@ -3,34 +3,41 @@ import "./Posts.css";
 import { Query } from "react-apollo";
 import gql from "graphql-tag";
 import Post from "../Post";
+import Notifier from "../Notifier";
 
 class Posts extends React.Component{
   constructor(){
     super();
     this.state = {
       posts : []
-    }
+    };
+    this.offline = !navigator.onLine;
   }
   componentDidMount(){
     Notification.requestPermission();
-    this.props.apollo_client
-    .query({
-      query:gql`
-        {
-          posts(user_id: "a"){
-            id
-            user{
-              nickname
-              avatar
+    if( !navigator.onLine){
+      this.setState({ posts: JSON.parse(localStorage.getItem("posts")) });
+    }else{
+      this.props.apollo_client
+      .query({
+        query:gql`
+          {
+            posts(user_id: "a"){
+              id
+              user{
+                nickname
+                avatar
+              }
+              image
+              caption
             }
-            image
-            caption
           }
-        }
-    `})
-    .then(response =>{
-      this.setState({posts: response.data.posts});
-    });
+      `})
+      .then(response =>{
+        this.setState({posts: response.data.posts});
+        localStorage.setItem('posts', JSON.stringify(response.data.posts));
+      });
+    }
     //  subscribe to posts channel
     this.posts_channel = this.props.pusher.subscribe('posts-channel');
     // listen for a new post
@@ -56,8 +63,10 @@ class Posts extends React.Component{
     },this);
   }
   render(){
+    const notify = this.offline ? <Notifier data="Instagram Clone: Offline Mode" /> : <span />;
     return (
       <div>
+        {notify}
         <div className="Posts">
           {this.state.posts
             .slice(0)
