@@ -4,7 +4,17 @@ let express = require("express");
 let graphqlHTTP = require("express-graphql");
 let { buildSchema } = require("graphql");
 let cors = require("cors");
-// let bodyParser = require("body-parser");
+let Pusher = require("pusher");
+let bodyParser = require("body-parser");
+let Multipart = require("connect-multiparty");
+
+let pusher = new Pusher({
+    appId: '944119',
+    key: '5cf7a92728a83a88849a',
+    secret: 'a390b604a2c569d45e78',
+    cluster: 'ap2',
+    encrypted: true
+});
 
 let schema = buildSchema(`
     type User {
@@ -83,5 +93,26 @@ app.use(
         graphiql: true
     })
 );
+// add Middleware
+let multipartMiddleware = new Multipart();
+// trigger add a new post 
+app.post('/newpost', multipartMiddleware, (req,res) => {
+    // create a sample post
+    let post = {
+        user : {
+        nickname : req.body.name,
+        avatar : req.body.avatar
+        },
+        image : req.body.image,
+        caption : req.body.caption
+    }
+
+    // trigger pusher event 
+    pusher.trigger("posts-channel", "new-post", { 
+        post 
+    });
+
+    return res.json({status : "Post created"});
+});
 app.listen(4000);
 console.log("Running a GraphQL API server at localhost:4000/graphql");
